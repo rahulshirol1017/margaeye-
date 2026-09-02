@@ -1,26 +1,30 @@
 # Marga-eyes — Geotagged Camera Application Technical Documentation
 
 ## 📌 Executive Summary
-**Marga-eyes** is a modern, human-crafted native Android application built in Kotlin with Jetpack Compose. It enables real-time camera capture with automatic high-precision GPS geotagging, Inspector details (Officer Name, Work ID, and Work Description), reverse-geocoded place names, embedded EXIF metadata, custom visible watermark plates burned directly onto saved photos, direct photo gallery export, and an official animated splash screen.
+**Marga-eyes** is a modern, human-crafted native Android application built in Kotlin with Jetpack Compose. It adopts the official **MARGA Slate Obsidian & Civic Design System Palette**, featuring real-time camera capture with automatic high-precision GPS geotagging, Inspector details (Officer Name, Work ID, and Work Description), reverse-geocoded place names, embedded EXIF metadata, custom visible watermark plates burned directly onto saved photos, direct photo gallery export, India tricolor accent stripes, and an official animated splash screen.
 
 ---
 
-## 🛠️ Technology Stack
+## 🛠️ Technology Stack & Color Design System
 
-| Layer / Component | Technology Utilized | Version / Library |
-| :--- | :--- | :--- |
-| **Language** | Kotlin | `2.0.21` |
-| **UI Framework** | Jetpack Compose (Material3) | `2024.10.00` BOM |
-| **Splash & Graphics** | Compose Canvas (Animated Eye Symbol) | Native `androidx.compose.ui.graphics` |
-| **Camera Hardware** | Android CameraX | `1.4.0` |
-| **Location & GPS** | Google Play Services Location & Geocoder | `21.3.0` |
-| **EXIF Engine** | AndroidX ExifInterface | `1.3.7` |
-| **Watermark Engine** | Android 2D Canvas & Paint API | Native `android.graphics` |
-| **Local Database** | Room Database (v4) & SharedPreferences | `2.6.1` (KSP Compiler) |
-| **Storage & Export** | Android MediaStore API & FileProvider | `MediaStore.Images.Media` |
-| **Image Loading** | Coil Compose | `2.7.0` |
-| **Coroutines** | Kotlin Coroutines & Flow | `1.9.0` |
-| **Target Android SDK** | Android 15 (API level 35) | Min SDK: `24` (Android 7.0) |
+### 🎨 MARGA Slate Obsidian & Civic Accents Palette
+
+| Palette Variable | Color Name | HEX Code | Design System Role |
+| :--- | :--- | :---: | :--- |
+| `--bg-base` | Slate Obsidian Base | `#080B12` | App background, top & navigation status bars |
+| `--bg-surface` | Slate Surface Dark | `#0E1420` | Cards, dialogs, bottom sheets, preview containers |
+| `--bg-surface-elevated` | Elevated Navy Surface | `#141C2C` | Input fields, active elevated chips |
+| `--border-subtle` | Subtle Border | `rgba(255,255,255,0.08)` | Card outlines, dividers |
+| `--border-medium` | Medium Border | `rgba(255,255,255,0.16)` | Active card focus outlines |
+| `--civic-blue` | Civic Blue | `#3B82F6` | Primary MP Portfolio accent & focus highlights |
+| `--civic-amber` | Civic Amber | `#F59E0B` | DA Sanctions, Work ID badges, torch indicator |
+| `--civic-emerald` | Civic Emerald | `#10B981` | IA Field Verification, location lock, photo watermark plate |
+| `--civic-purple` | Civic Purple | `#8B5CF6` | MoSPI Command & analytics highlights |
+| `--civic-red` | Civic Red | `#EF4444` | Anomalies, rejections, photo deletion buttons |
+| `--text-primary` | Slate 50 Primary Text | `#F8FAFC` | Headlines, primary text, shutter button core |
+| `--text-secondary` | Slate 400 Secondary Text | `#94A3B8` | Coordinates, timestamps, place labels |
+| `--text-muted` | Slate 500 Muted Text | `#64748B` | Subdued icons, footer legal text |
+| **Gov Tricolor** | India Flag Stripe | `#FF9933` / `#FFFFFF` / `#138808` | Official India tricolor accent header |
 
 ---
 
@@ -28,7 +32,7 @@
 
 ```mermaid
 flowchart TD
-    A[Launch Marga-eyes App] --> B[Animated Eye Splash Screen]
+    A[Launch Marga-eyes App] --> B[Animated Eye Splash Screen + Tricolor Accent]
     B --> C{Permissions Granted?}
     C -- No --> D[Display Permission Request Screen]
     D --> C
