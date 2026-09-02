@@ -106,7 +106,6 @@ fun AppNavigation(
     var savedWorkerName by remember { mutableStateOf(prefs.getString("worker_name", "") ?: "") }
     var savedWorkId by remember { mutableStateOf(prefs.getString("work_id", "") ?: "") }
     var savedDescription by remember { mutableStateOf(prefs.getString("work_description", "") ?: "") }
-    var showWorkerDialog by remember { mutableStateOf(savedWorkerName.isEmpty() || savedWorkId.isEmpty()) }
 
     val photos by repository.allPhotos.collectAsState(initial = emptyList())
     val savedCount by repository.savedPhotosCount.collectAsState(initial = 0)
@@ -115,37 +114,38 @@ fun AppNavigation(
 
     var currentCaptureData by remember { mutableStateOf<CapturedPhotoData?>(null) }
 
-    if (showWorkerDialog) {
-        WorkerDetailsDialog(
-            initialWorkerName = savedWorkerName,
-            initialWorkId = savedWorkId,
-            initialDescription = savedDescription,
-            onConfirm = { name, id, desc ->
-                savedWorkerName = name
-                savedWorkId = id
-                savedDescription = desc
-                prefs.edit()
-                    .putString("worker_name", name)
-                    .putString("work_id", id)
-                    .putString("work_description", desc)
-                    .apply()
-                showWorkerDialog = false
-            },
-            onDismiss = {
-                if (savedWorkerName.isNotEmpty() && savedWorkId.isNotEmpty()) {
-                    showWorkerDialog = false
-                }
-            }
-        )
-    }
+    val startRoute = if (savedWorkerName.isEmpty() || savedWorkId.isEmpty()) Screen.Auth.route else Screen.Camera.route
 
-    NavHost(navController = navController, startDestination = Screen.Camera.route) {
+    NavHost(navController = navController, startDestination = startRoute) {
+        composable(Screen.Auth.route) {
+            AuthScreen(
+                initialWorkerName = savedWorkerName,
+                initialWorkId = savedWorkId,
+                initialDescription = savedDescription,
+                onLoginSuccess = { name, id, desc ->
+                    savedWorkerName = name
+                    savedWorkId = id
+                    savedDescription = desc
+                    prefs.edit()
+                        .putString("worker_name", name)
+                        .putString("work_id", id)
+                        .putString("work_description", desc)
+                        .apply()
+                    navController.navigate(Screen.Camera.route) {
+                        popUpTo(Screen.Auth.route) { inclusive = true }
+                    }
+                }
+            )
+        }
+
         composable(Screen.Camera.route) {
             CameraScreen(
                 workerName = savedWorkerName,
                 workId = savedWorkId,
                 description = savedDescription,
-                onEditWorkerDetails = { showWorkerDialog = true },
+                onEditWorkerDetails = {
+                    navController.navigate(Screen.Auth.route)
+                },
                 onCaptureComplete = { photoData ->
                     currentCaptureData = photoData
                     navController.navigate(Screen.Preview.route)
