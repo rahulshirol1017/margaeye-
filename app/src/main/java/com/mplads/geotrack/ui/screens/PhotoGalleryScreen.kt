@@ -325,74 +325,95 @@ fun GalleryPhotoCard(
                     )
                 }
 
-                HorizontalDivider(color = Zinc800.copy(alpha = 0.6f), thickness = 1.dp)
-
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Text(
-                        text = "📅 ${photo.dateFormatted}  🕐 ${photo.timeFormatted}",
-                        color = Zinc400,
-                        fontSize = 11.sp,
-                        fontFamily = FontFamily.Monospace
-                    )
-
-                    // Action buttons: Share, Export & Delete
                     Row(verticalAlignment = Alignment.CenterVertically) {
-                        IconButton(
-                            onClick = onShareClick,
-                            modifier = Modifier
-                                .size(34.dp)
-                                .clip(RoundedCornerShape(8.dp))
-                                .background(Zinc800)
-                        ) {
-                            Icon(
-                                imageVector = Icons.Default.Share,
-                                contentDescription = "Share",
-                                tint = White,
-                                modifier = Modifier.size(16.dp)
-                            )
-                        }
+                        Icon(
+                            imageVector = Icons.Default.CalendarToday,
+                            contentDescription = null,
+                            tint = Zinc500,
+                            modifier = Modifier.size(12.dp)
+                        )
+                        Spacer(modifier = Modifier.width(4.dp))
+                        Text(
+                            text = "${photo.dateFormatted} • ${photo.timeFormatted}",
+                            color = Zinc400,
+                            fontSize = 11.sp,
+                            fontFamily = FontFamily.Monospace
+                        )
+                    }
+                }
 
-                        Spacer(modifier = Modifier.width(6.dp))
+                HorizontalDivider(color = Zinc800.copy(alpha = 0.6f), thickness = 1.dp)
 
-                        Button(
-                            onClick = onExportClick,
-                            colors = ButtonDefaults.buttonColors(
-                                containerColor = Emerald500,
-                                contentColor = Black
-                            ),
-                            shape = RoundedCornerShape(8.dp),
-                            contentPadding = PaddingValues(horizontal = 10.dp, vertical = 4.dp),
-                            modifier = Modifier.height(34.dp)
-                        ) {
-                            Icon(
-                                imageVector = Icons.Default.FileDownload,
-                                contentDescription = null,
-                                modifier = Modifier.size(14.dp)
-                            )
-                            Spacer(modifier = Modifier.width(4.dp))
-                            Text(text = "Save to Gallery", fontSize = 11.sp, fontWeight = FontWeight.Bold)
-                        }
+                // Dedicated Action Buttons Row (Equal heights, clean alignment)
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(top = 2.dp),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    // Share Button
+                    OutlinedButton(
+                        onClick = onShareClick,
+                        modifier = Modifier
+                            .weight(1f)
+                            .height(38.dp),
+                        shape = RoundedCornerShape(10.dp),
+                        border = androidx.compose.foundation.BorderStroke(1.dp, Zinc700),
+                        colors = ButtonDefaults.outlinedButtonColors(contentColor = White),
+                        contentPadding = PaddingValues(horizontal = 8.dp)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Share,
+                            contentDescription = "Share",
+                            modifier = Modifier.size(15.dp)
+                        )
+                        Spacer(modifier = Modifier.width(4.dp))
+                        Text(text = "Share", fontSize = 12.sp, fontWeight = FontWeight.Medium)
+                    }
 
-                        Spacer(modifier = Modifier.width(6.dp))
+                    // Save to Gallery Button
+                    Button(
+                        onClick = onExportClick,
+                        modifier = Modifier
+                            .weight(1.3f)
+                            .height(38.dp),
+                        shape = RoundedCornerShape(10.dp),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = Emerald500,
+                            contentColor = Black
+                        ),
+                        contentPadding = PaddingValues(horizontal = 8.dp)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.FileDownload,
+                            contentDescription = null,
+                            modifier = Modifier.size(15.dp)
+                        )
+                        Spacer(modifier = Modifier.width(4.dp))
+                        Text(text = "Save to Gallery", fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                    }
 
-                        IconButton(
-                            onClick = onDeleteClick,
-                            modifier = Modifier
-                                .size(34.dp)
-                                .clip(RoundedCornerShape(8.dp))
-                                .background(Zinc800.copy(alpha = 0.6f))
-                        ) {
-                            Icon(
-                                imageVector = Icons.Default.Delete,
-                                contentDescription = "Delete",
-                                tint = Rose500,
-                                modifier = Modifier.size(16.dp)
-                            )
-                        }
+                    // Delete Button
+                    IconButton(
+                        onClick = onDeleteClick,
+                        modifier = Modifier
+                            .size(38.dp)
+                            .clip(RoundedCornerShape(10.dp))
+                            .background(Rose500.copy(alpha = 0.15f))
+                            .border(1.dp, Rose500.copy(alpha = 0.3f), RoundedCornerShape(10.dp))
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Delete,
+                            contentDescription = "Delete",
+                            tint = Rose500,
+                            modifier = Modifier.size(18.dp)
+                        )
                     }
                 }
             }

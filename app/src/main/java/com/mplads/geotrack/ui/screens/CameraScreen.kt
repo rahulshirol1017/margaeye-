@@ -538,127 +538,179 @@ fun CameraScreen(
 
             Spacer(modifier = Modifier.height(10.dp))
 
-            // Bottom Shutter Controls
+            // Bottom Shutter Controls Row (Perfectly Aligned & Centered)
             Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 8.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                // Saved Gallery Button with Badge
-                Box {
-                    IconButton(
-                        onClick = { onOpenGallery() },
-                        modifier = Modifier
-                            .size(52.dp)
-                            .clip(CircleShape)
-                            .background(Zinc900)
-                            .border(1.dp, Zinc800, CircleShape)
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.PhotoLibrary,
-                            contentDescription = "Photos Gallery",
-                            tint = White,
-                            modifier = Modifier.size(24.dp)
-                        )
-                    }
-                    if (savedPhotosCount > 0) {
-                        Box(
+                // Left Slot: Gallery Button with Count Badge
+                Box(
+                    modifier = Modifier.weight(1f),
+                    contentAlignment = Alignment.CenterStart
+                ) {
+                    Box {
+                        IconButton(
+                            onClick = { onOpenGallery() },
                             modifier = Modifier
-                                .size(20.dp)
+                                .size(52.dp)
                                 .clip(CircleShape)
-                                .background(Emerald500)
-                                .align(Alignment.TopEnd),
-                            contentAlignment = Alignment.Center
+                                .background(Zinc900)
+                                .border(1.dp, Zinc800, CircleShape)
                         ) {
-                            Text(
-                                text = if (savedPhotosCount > 9) "9+" else savedPhotosCount.toString(),
-                                color = Black,
-                                fontSize = 10.sp,
-                                fontWeight = FontWeight.Bold
+                            Icon(
+                                imageVector = Icons.Default.PhotoLibrary,
+                                contentDescription = "Photos Gallery",
+                                tint = White,
+                                modifier = Modifier.size(24.dp)
                             )
+                        }
+                        if (savedPhotosCount > 0) {
+                            Box(
+                                modifier = Modifier
+                                    .size(20.dp)
+                                    .clip(CircleShape)
+                                    .background(Emerald500)
+                                    .align(Alignment.TopEnd),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Text(
+                                    text = if (savedPhotosCount > 9) "9+" else savedPhotosCount.toString(),
+                                    color = Black,
+                                    fontSize = 10.sp,
+                                    fontWeight = FontWeight.Bold
+                                )
+                            }
                         }
                     }
                 }
 
-                // Shutter Button
+                // Center Slot: Shutter Capture Button (100% Centered)
                 val canCapture = !isCapturing && imageCapture != null
 
                 Box(
-                    modifier = Modifier
-                        .size(76.dp)
-                        .clip(CircleShape)
-                        .background(if (canCapture) White else Zinc800)
-                        .clickable(enabled = canCapture) {
-                            val activeCapture = imageCapture ?: return@clickable
-                            if (isCapturing) return@clickable
-                            isCapturing = true
+                    modifier = Modifier.weight(1f),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .size(76.dp)
+                            .clip(CircleShape)
+                            .background(if (canCapture) White else Zinc800)
+                            .clickable(enabled = canCapture) {
+                                val activeCapture = imageCapture ?: return@clickable
+                                if (isCapturing) return@clickable
+                                isCapturing = true
 
-                            // 1. Unique Filename: IMG_YYYYMMDD_HHMMSS.jpg
-                            val timeStamp = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.US).format(Date())
-                            val filename = "IMG_${timeStamp}.jpg"
+                                // 1. Unique Filename: IMG_YYYYMMDD_HHMMSS.jpg
+                                val timeStamp = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.US).format(Date())
+                                val filename = "IMG_${timeStamp}.jpg"
 
-                            // 2. MediaStore Target: Pictures/GeoTagCamera/
-                            val contentValues = ContentValues().apply {
-                                put(MediaStore.MediaColumns.DISPLAY_NAME, filename)
-                                put(MediaStore.MediaColumns.MIME_TYPE, "image/jpeg")
-                                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-                                    put(MediaStore.MediaColumns.RELATIVE_PATH, "Pictures/Marga-eyes")
+                                // 2. MediaStore Target: Pictures/GeoTagCamera/
+                                val contentValues = ContentValues().apply {
+                                    put(MediaStore.MediaColumns.DISPLAY_NAME, filename)
+                                    put(MediaStore.MediaColumns.MIME_TYPE, "image/jpeg")
+                                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                                        put(MediaStore.MediaColumns.RELATIVE_PATH, "Pictures/Marga-eyes")
+                                    }
                                 }
-                            }
 
-                            val outputOptions = ImageCapture.OutputFileOptions.Builder(
-                                context.contentResolver,
-                                MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
-                                contentValues
-                            ).build()
+                                val outputOptions = ImageCapture.OutputFileOptions.Builder(
+                                    context.contentResolver,
+                                    MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
+                                    contentValues
+                                ).build()
 
-                            val mainExecutor = ContextCompat.getMainExecutor(context)
+                                val mainExecutor = ContextCompat.getMainExecutor(context)
 
-                            val currentLoc = if (locationState is LocationState.Locked) {
-                                locationState.data
-                            } else {
-                                LocationData(
-                                    latitude = 15.8497,
-                                    longitude = 74.4977,
-                                    accuracy = 5.0f,
-                                    placeName = if (placeName != "Locating...") placeName else "Belagavi, Karnataka"
-                                )
-                            }
+                                val currentLoc = if (locationState is LocationState.Locked) {
+                                    locationState.data
+                                } else {
+                                    LocationData(
+                                        latitude = 15.8497,
+                                        longitude = 74.4977,
+                                        accuracy = 5.0f,
+                                        placeName = if (placeName != "Locating...") placeName else "Belagavi, Karnataka"
+                                    )
+                                }
 
-                            activeCapture.takePicture(
-                                outputOptions,
-                                mainExecutor,
-                                object : ImageCapture.OnImageSavedCallback {
-                                    override fun onImageSaved(outputFileResults: ImageCapture.OutputFileResults) {
-                                        val savedUri: Uri? = outputFileResults.savedUri
+                                activeCapture.takePicture(
+                                    outputOptions,
+                                    mainExecutor,
+                                    object : ImageCapture.OnImageSavedCallback {
+                                        override fun onImageSaved(outputFileResults: ImageCapture.OutputFileResults) {
+                                            val savedUri: Uri? = outputFileResults.savedUri
 
-                                        if (savedUri == null) {
-                                            isCapturing = false
-                                            Toast.makeText(context, "Error: Saved image URI was null", Toast.LENGTH_SHORT).show()
-                                            return
-                                        }
-
-                                        coroutineScope.launch(Dispatchers.IO) {
-                                            val now = Date()
-                                            val isoFormat = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'", Locale.US)
-                                            val isoStr = isoFormat.format(now)
-
-                                            val resolvedPlace = if (currentLoc.placeName == "Locating..." || placeName == "Locating...") {
-                                                onResolvePlaceName(currentLoc.latitude, currentLoc.longitude)
-                                            } else {
-                                                placeName
+                                            if (savedUri == null) {
+                                                isCapturing = false
+                                                Toast.makeText(context, "Error: Saved image URI was null", Toast.LENGTH_SHORT).show()
+                                                return
                                             }
 
-                                            // 1. Burn Watermark overlay directly onto saved JPEG image bitmap
-                                            try {
-                                                if (showLocationOverlay) {
-                                                    val inputStream = context.contentResolver.openInputStream(savedUri)
-                                                    val originalBitmap = BitmapFactory.decodeStream(inputStream)
-                                                    inputStream?.close()
+                                            coroutineScope.launch(Dispatchers.IO) {
+                                                val now = Date()
+                                                val isoFormat = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'", Locale.US)
+                                                val isoStr = isoFormat.format(now)
 
-                                                    if (originalBitmap != null) {
-                                                        val watermarkedBitmap = OverlayUtils.drawWatermarkOnBitmap(
-                                                            sourceBitmap = originalBitmap,
+                                                val resolvedPlace = if (currentLoc.placeName == "Locating..." || placeName == "Locating...") {
+                                                    onResolvePlaceName(currentLoc.latitude, currentLoc.longitude)
+                                                } else {
+                                                    placeName
+                                                }
+
+                                                // 1. Burn Watermark overlay directly onto saved JPEG image bitmap
+                                                try {
+                                                    if (showLocationOverlay) {
+                                                        val inputStream = context.contentResolver.openInputStream(savedUri)
+                                                        val originalBitmap = BitmapFactory.decodeStream(inputStream)
+                                                        inputStream?.close()
+
+                                                        if (originalBitmap != null) {
+                                                            val watermarkedBitmap = OverlayUtils.drawWatermarkOnBitmap(
+                                                                sourceBitmap = originalBitmap,
+                                                                latitude = currentLoc.latitude,
+                                                                longitude = currentLoc.longitude,
+                                                                accuracy = currentLoc.accuracy,
+                                                                placeName = resolvedPlace,
+                                                                workerName = workerName,
+                                                                workId = workId,
+                                                                description = description,
+                                                                dateFormatted = currentDateStr,
+                                                                timeFormatted = currentTimeStr
+                                                            )
+
+                                                            context.contentResolver.openOutputStream(savedUri, "rwt")?.use { out ->
+                                                                watermarkedBitmap.compress(android.graphics.Bitmap.CompressFormat.JPEG, 92, out)
+                                                            }
+                                                        }
+                                                    }
+                                                } catch (e: Exception) {
+                                                    Log.e("CameraScreen", "Could not burn watermark onto saved image", e)
+                                                }
+
+                                                // 2. Process EXIF metadata on saved MediaStore file descriptor
+                                                try {
+                                                    val pfd = context.contentResolver.openFileDescriptor(savedUri, "rw")
+                                                    pfd?.use { descriptor ->
+                                                        ExifUtils.embedGpsExif(
+                                                            fd = descriptor.fileDescriptor,
+                                                            latitude = currentLoc.latitude,
+                                                            longitude = currentLoc.longitude,
+                                                            date = now
+                                                        )
+                                                    }
+                                                } catch (e: Exception) {
+                                                    Log.w("CameraScreen", "Could not embed EXIF in MediaStore URI directly", e)
+                                                }
+
+                                                withContext(Dispatchers.Main) {
+                                                    isCapturing = false
+                                                    onCaptureComplete(
+                                                        CapturedPhotoData(
+                                                            imageUri = savedUri,
+                                                            imageUrl = savedUri.toString(),
+                                                            hasVisibleOverlay = showLocationOverlay,
                                                             latitude = currentLoc.latitude,
                                                             longitude = currentLoc.longitude,
                                                             accuracy = currentLoc.accuracy,
@@ -667,81 +719,65 @@ fun CameraScreen(
                                                             workId = workId,
                                                             description = description,
                                                             dateFormatted = currentDateStr,
-                                                            timeFormatted = currentTimeStr
+                                                            timeFormatted = currentTimeStr,
+                                                            capturedAt = isoStr
                                                         )
-
-                                                        context.contentResolver.openOutputStream(savedUri, "rwt")?.use { out ->
-                                                            watermarkedBitmap.compress(android.graphics.Bitmap.CompressFormat.JPEG, 92, out)
-                                                        }
-                                                    }
-                                                }
-                                            } catch (e: Exception) {
-                                                Log.e("CameraScreen", "Could not burn watermark onto saved image", e)
-                                            }
-
-                                            // 2. Process EXIF metadata on saved MediaStore file descriptor
-                                            try {
-                                                val pfd = context.contentResolver.openFileDescriptor(savedUri, "rw")
-                                                pfd?.use { descriptor ->
-                                                    ExifUtils.embedGpsExif(
-                                                        fd = descriptor.fileDescriptor,
-                                                        latitude = currentLoc.latitude,
-                                                        longitude = currentLoc.longitude,
-                                                        date = now
                                                     )
                                                 }
-                                            } catch (e: Exception) {
-                                                Log.w("CameraScreen", "Could not embed EXIF in MediaStore URI directly", e)
-                                            }
-
-                                            withContext(Dispatchers.Main) {
-                                                isCapturing = false
-                                                onCaptureComplete(
-                                                    CapturedPhotoData(
-                                                        imageUri = savedUri,
-                                                        imageUrl = savedUri.toString(),
-                                                        hasVisibleOverlay = showLocationOverlay,
-                                                        latitude = currentLoc.latitude,
-                                                        longitude = currentLoc.longitude,
-                                                        accuracy = currentLoc.accuracy,
-                                                        placeName = resolvedPlace,
-                                                        workerName = workerName,
-                                                        workId = workId,
-                                                        description = description,
-                                                        dateFormatted = currentDateStr,
-                                                        timeFormatted = currentTimeStr,
-                                                        capturedAt = isoStr
-                                                    )
-                                                )
                                             }
                                         }
-                                    }
 
-                                    override fun onError(exception: ImageCaptureException) {
-                                        isCapturing = false
-                                        Log.e("CameraScreen", "Image capture failed", exception)
-                                        Toast.makeText(
-                                            context,
-                                            "Capture error: ${exception.message ?: "Failed to save photo"}",
-                                            Toast.LENGTH_LONG
-                                        ).show()
+                                        override fun onError(exception: ImageCaptureException) {
+                                            isCapturing = false
+                                            Log.e("CameraScreen", "Image capture failed", exception)
+                                            Toast.makeText(
+                                                context,
+                                                "Capture error: ${exception.message ?: "Failed to save photo"}",
+                                                Toast.LENGTH_LONG
+                                            ).show()
+                                        }
                                     }
-                                }
-                            )
-                        },
-                    contentAlignment = Alignment.Center
-                ) {
-                    Box(
-                        modifier = Modifier
-                            .size(64.dp)
-                            .clip(CircleShape)
-                            .border(2.dp, Black, CircleShape)
-                            .background(if (canCapture) Emerald500 else Zinc700)
-                    )
+                                )
+                            },
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Box(
+                            modifier = Modifier
+                                .size(64.dp)
+                                .clip(CircleShape)
+                                .border(2.dp, Black, CircleShape)
+                                .background(if (canCapture) Emerald500 else Zinc700)
+                        )
+                    }
                 }
 
-                // Balance Spacer
-                Spacer(modifier = Modifier.size(52.dp))
+                // Right Slot: Camera Switch / Flip Button (Matching 52.dp size)
+                Box(
+                    modifier = Modifier.weight(1f),
+                    contentAlignment = Alignment.CenterEnd
+                ) {
+                    IconButton(
+                        onClick = {
+                            lensFacing = if (lensFacing == CameraSelector.LENS_FACING_BACK) {
+                                CameraSelector.LENS_FACING_FRONT
+                            } else {
+                                CameraSelector.LENS_FACING_BACK
+                            }
+                        },
+                        modifier = Modifier
+                            .size(52.dp)
+                            .clip(CircleShape)
+                            .background(Zinc900)
+                            .border(1.dp, Zinc800, CircleShape)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Cameraswitch,
+                            contentDescription = "Flip Camera",
+                            tint = White,
+                            modifier = Modifier.size(24.dp)
+                        )
+                    }
+                }
             }
         }
     }
