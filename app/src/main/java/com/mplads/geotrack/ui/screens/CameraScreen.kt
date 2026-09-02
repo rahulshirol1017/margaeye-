@@ -330,41 +330,12 @@ fun CameraScreen(
                             )
                         }
 
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            Text(
-                                text = AuthManager.getRemainingSessionFormatted(context),
-                                color = Emerald400,
-                                fontSize = 10.sp,
-                                fontWeight = FontWeight.SemiBold
-                            )
-                            Spacer(modifier = Modifier.width(4.dp))
-                            Icon(
-                                imageVector = Icons.Default.Edit,
-                                contentDescription = "Edit Details",
-                                tint = Zinc400,
-                                modifier = Modifier.size(14.dp)
-                            )
-                        }
-                    }
-
-                    if (description.isNotBlank()) {
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(4.dp)
-                        ) {
-                            Icon(
-                                imageVector = Icons.Default.Notes,
-                                contentDescription = null,
-                                tint = Emerald400,
-                                modifier = Modifier.size(13.dp)
-                            )
-                            Text(
-                                text = description,
-                                color = Zinc300,
-                                fontSize = 11.sp,
-                                maxLines = 1
-                            )
-                        }
+                        Icon(
+                            imageVector = Icons.Default.Edit,
+                            contentDescription = "Edit Details",
+                            tint = Zinc400,
+                            modifier = Modifier.size(14.dp)
+                        )
                     }
                 }
             }

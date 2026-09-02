@@ -1,7 +1,7 @@
 # Marga-eyes — Geotagged Camera Application Technical Documentation
 
 ## 📌 Executive Summary
-**Marga-eyes** is a modern, human-crafted native Android application built in Kotlin with Jetpack Compose. It enables real-time camera capture with automatic high-precision GPS geotagging, Inspector Authentication (Officer Name, Work ID, and Work Description), reverse-geocoded place names, embedded EXIF metadata, custom visible watermark plates burned directly onto saved photos, direct photo gallery export, and an official splash screen.
+**Marga-eyes** is a modern, human-crafted native Android application built in Kotlin with Jetpack Compose. It enables real-time camera capture with automatic high-precision GPS geotagging, Password & Google Authentication with a 24-hour session expiration window, reverse-geocoded place names, embedded EXIF metadata, custom visible watermark plates burned directly onto saved photos, direct photo gallery export, and an official splash screen.
 
 ---
 
@@ -11,12 +11,13 @@
 | :--- | :--- | :--- |
 | **Language** | Kotlin | `2.0.21` |
 | **UI Framework** | Jetpack Compose (Material3) | `2024.10.00` BOM |
+| **Authentication Engine** | `AuthManager` (Credentials, Google Auth, 24h Expiry) | Native `SharedPreferences` + Token Expiry |
 | **Splash & Graphics** | Compose Canvas (Animated Eye Symbol) | Native `androidx.compose.ui.graphics` |
 | **Camera Hardware** | Android CameraX | `1.4.0` |
 | **Location & GPS** | Google Play Services Location & Geocoder | `21.3.0` |
 | **EXIF Engine** | AndroidX ExifInterface | `1.3.7` |
 | **Watermark Engine** | Android 2D Canvas & Paint API | Native `android.graphics` |
-| **Local Database** | Room Database (v4) & SharedPreferences | `2.6.1` (KSP Compiler) |
+| **Local Database** | Room Database (v4) | `2.6.1` (KSP Compiler) |
 | **Storage & Export** | Android MediaStore API & FileProvider | `MediaStore.Images.Media` |
 | **Image Loading** | Coil Compose | `2.7.0` |
 | **Coroutines** | Kotlin Coroutines & Flow | `1.9.0` |
@@ -32,12 +33,12 @@ flowchart TD
     B --> C{Permissions Granted?}
     C -- No --> D[Display Permission Request Screen]
     D --> C
-    C -- Yes --> E{Officer Details Set?}
-    E -- No --> F[Show Inspector Authentication Dialog]
-    F --> G[Save Officer Name, Work ID & Site Description to SharedPreferences]
+    C -- Yes --> E{24-Hour Auth Token Valid?}
+    E -- No --> F[Display AuthScreen: Password Auth or Google Sign-In]
+    F --> G[Generate 24-Hour Session Token & Store Expiration Timestamp]
     G --> H[Initialize CameraX Viewfinder & GPS Location Engine]
     E -- Yes --> H
-    H --> I[Display Live Viewfinder + Officer Badge + Location + Clock]
+    H --> I[Display Live Viewfinder + Officer Badge + 24h Session Countdown + Location]
     I --> J[User Taps Capture Button]
     J --> K[CameraX takePicture executes via MediaStore]
     K --> L[Generate File: Pictures/Marga-eyes/IMG_YYYYMMDD_HHMMSS.jpg]
@@ -54,34 +55,23 @@ flowchart TD
     T --> U[Export / Download or Share Geotagged Photo]
 ```
 
-### Detailed Workflow Steps:
-1. **Human Splash Animation**: Displays an animated Eye symbol rendered natively via Compose Canvas with smooth rotation, pupil reflection, and official badge header.
-2. **Permission & Authentication**: Checks for `CAMERA` and `ACCESS_FINE_LOCATION` permissions. Prompts for **Officer Name**, **Work ID**, and **Site Description**, saving inputs to `SharedPreferences` for auto-fill on future sessions.
-3. **CameraX Binding**: `ProcessCameraProvider` binds `Preview` and `ImageCapture` use-cases to the lifecycle inside a Compose `LaunchedEffect(lensFacing)`.
-4. **GPS Locking & Reverse Geocoding**: `LocationHelper` starts continuous high-accuracy location tracking (`FusedLocationProviderClient`). `Geocoder` converts latitude & longitude into human-readable place names asynchronously.
-5. **Photo Capture**: Tapping shutter triggers `ImageCapture.takePicture()`. The image is written directly to Android `MediaStore` under `Pictures/Marga-eyes/` with a timestamped filename (`IMG_YYYYMMDD_HHMMSS.jpg`).
-6. **Watermark & EXIF Processing**:
-   - The raw bitmap is processed via `OverlayUtils.drawWatermarkOnBitmap()` (drawing a translucent dark badge with Officer Name, Work ID, Site Description notes, green location pin, place name, coordinates, accuracy, and timestamp), and written back to the MediaStore URI.
-   - `ExifUtils` embeds standard EXIF tags (`TAG_GPS_LATITUDE`, `TAG_GPS_LONGITUDE`, `TAG_DATETIME`, `TAG_SOFTWARE`).
-7. **Export & Sharing**: In `PhotoGalleryScreen`, users can tap **Save to Gallery** (`exportToGallery`) to export a high-resolution copy to device photos, or tap **Share** to send the geotagged image via any installed messaging/email app.
-
 ---
 
-## 💻 Component Details
+## 💻 Authentication & Session Features (`AuthManager.kt` & `AuthScreen.kt`)
 
-### 1. Inspector Authentication & Site Description (`WorkerDetailsDialog.kt`)
-- Prompts user for Officer Name (e.g. *"Rahul Shirol"*), Work ID (e.g. *"WRK-2026-8942"*), and Site Description (e.g. *"Road repair & drainage inspection"*).
-- Persists data to Android `SharedPreferences` (`marga_eyes_prefs`).
-- Editable directly from the live camera viewfinder badge.
+### 1. Password Credentials Authentication
+- Allows officers to log in using **Email / Username** and **Password** (with visibility toggle).
+- Requires Officer Name, Work ID, and Work Description.
+- Generates a secure session token with a `24-Hour` expiration duration.
 
-### 2. Canvas Watermarking Engine (`OverlayUtils.kt`)
-- Draws dynamic overlays on Android `Bitmap` using `Canvas`, `Paint`, `RectF`, and `Typeface`.
-- Includes **Officer Name**, **Work ID**, **Site Description**, **Place Name**, **Coordinates**, **Accuracy**, and **Date & Time**.
+### 2. Google Sign-In Integration
+- Provides a **Continue with Google** single sign-on option.
+- Auto-populates Google account credentials and generates a 24-hour field inspection token.
 
-### 3. MediaStore Export & Sharing (`PhotoGalleryScreen.kt`)
-- Resolves content URIs (`content://media/...`) and opens input streams safely.
-- Exports photos directly to `Pictures/Marga-eyes` using `MediaStore.Images.Media.EXTERNAL_CONTENT_URI`.
-- Shares images with `Intent.ACTION_SEND` and `FLAG_GRANT_READ_URI_PERMISSION`.
+### 3. 24-Hour Automatic Token Expiry
+- Sessions expire automatically after **24 hours** (`86,400,000 ms`).
+- Opening the app within 24 hours bypasses the login screen for instant field inspections.
+- Tapping the Inspector Badge on the viewfinder displays remaining session time (`e.g., 🔒 23h 45m remaining`) with options to re-authenticate or switch accounts.
 
 ---
 
