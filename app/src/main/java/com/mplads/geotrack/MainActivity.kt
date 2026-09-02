@@ -28,6 +28,7 @@ import com.mplads.geotrack.data.repository.PhotoRepository
 import com.mplads.geotrack.ui.navigation.Screen
 import com.mplads.geotrack.ui.screens.*
 import com.mplads.geotrack.ui.theme.*
+import com.mplads.geotrack.utils.AuthManager
 import com.mplads.geotrack.utils.LocationHelper
 import com.mplads.geotrack.utils.LocationState
 import kotlinx.coroutines.launch
@@ -102,11 +103,12 @@ fun AppNavigation(
     val navController = rememberNavController()
     val scope = rememberCoroutineScope()
 
+    var isLoggedIn by remember { mutableStateOf(AuthManager.isLoggedIn(context)) }
     val prefs = remember { context.getSharedPreferences("marga_eyes_prefs", Context.MODE_PRIVATE) }
     var savedWorkerName by remember { mutableStateOf(prefs.getString("worker_name", "") ?: "") }
     var savedWorkId by remember { mutableStateOf(prefs.getString("work_id", "") ?: "") }
     var savedDescription by remember { mutableStateOf(prefs.getString("work_description", "") ?: "") }
-    var showWorkerDialog by remember { mutableStateOf(savedWorkerName.isEmpty() || savedWorkId.isEmpty()) }
+    var showWorkerDialog by remember { mutableStateOf(false) }
 
     val photos by repository.allPhotos.collectAsState(initial = emptyList())
     val savedCount by repository.savedPhotosCount.collectAsState(initial = 0)
@@ -114,6 +116,8 @@ fun AppNavigation(
     val locationState by locationHelper.getLocationFlow().collectAsState(initial = LocationState.Waiting)
 
     var currentCaptureData by remember { mutableStateOf<CapturedPhotoData?>(null) }
+
+    val startRoute = if (isLoggedIn) Screen.Camera.route else Screen.Auth.route
 
     if (showWorkerDialog) {
         WorkerDetailsDialog(
@@ -131,15 +135,25 @@ fun AppNavigation(
                     .apply()
                 showWorkerDialog = false
             },
-            onDismiss = {
-                if (savedWorkerName.isNotEmpty() && savedWorkId.isNotEmpty()) {
-                    showWorkerDialog = false
-                }
-            }
+            onDismiss = { showWorkerDialog = false }
         )
     }
 
-    NavHost(navController = navController, startDestination = Screen.Camera.route) {
+    NavHost(navController = navController, startDestination = startRoute) {
+        composable(Screen.Auth.route) {
+            AuthScreen(
+                onLoginSuccess = {
+                    savedWorkerName = AuthManager.getOfficerName(context)
+                    savedWorkId = AuthManager.getWorkId(context)
+                    savedDescription = AuthManager.getDescription(context)
+                    isLoggedIn = true
+                    navController.navigate(Screen.Camera.route) {
+                        popUpTo(Screen.Auth.route) { inclusive = true }
+                    }
+                }
+            )
+        }
+
         composable(Screen.Camera.route) {
             CameraScreen(
                 workerName = savedWorkerName,
