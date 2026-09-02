@@ -18,3 +18,4 @@ View your app in AI Studio: https://ai.studio/apps/597db59a-6641-471b-bb3a-92f45
 2. Set the `GEMINI_API_KEY` in [.env.local](.env.local) to your Gemini API key
 3. Run the app:
    `npm run dev`
+# geotag-camera-
