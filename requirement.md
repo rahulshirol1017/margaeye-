@@ -1,7 +1,7 @@
 # Marga-eyes — Geotagged Camera Application Technical Documentation
 
 ## 📌 Executive Summary
-**Marga-eyes** is a modern, human-crafted native Android application built in Kotlin with Jetpack Compose. It enables real-time camera capture with automatic high-precision GPS geotagging, Password & Google Authentication with a 24-hour session expiration window, reverse-geocoded place names, embedded EXIF metadata, custom visible watermark plates burned directly onto saved photos, direct photo gallery export, and an official splash screen.
+**Marga-eyes** is a modern, human-crafted native Android application built in Kotlin with Jetpack Compose. It enables real-time camera capture with automatic high-precision GPS geotagging, Inspector Authentication details (Officer Name, Work ID, and Work Description), reverse-geocoded place names, embedded EXIF metadata, custom visible watermark plates burned directly onto saved photos, direct photo gallery export, and an official animated splash screen.
 
 ---
 
@@ -11,13 +11,12 @@
 | :--- | :--- | :--- |
 | **Language** | Kotlin | `2.0.21` |
 | **UI Framework** | Jetpack Compose (Material3) | `2024.10.00` BOM |
-| **Authentication Engine** | `AuthManager` (Credentials, Google Auth, 24h Expiry) | Native `SharedPreferences` + Token Expiry |
 | **Splash & Graphics** | Compose Canvas (Animated Eye Symbol) | Native `androidx.compose.ui.graphics` |
 | **Camera Hardware** | Android CameraX | `1.4.0` |
 | **Location & GPS** | Google Play Services Location & Geocoder | `21.3.0` |
 | **EXIF Engine** | AndroidX ExifInterface | `1.3.7` |
 | **Watermark Engine** | Android 2D Canvas & Paint API | Native `android.graphics` |
-| **Local Database** | Room Database (v4) | `2.6.1` (KSP Compiler) |
+| **Local Database** | Room Database (v4) & SharedPreferences | `2.6.1` (KSP Compiler) |
 | **Storage & Export** | Android MediaStore API & FileProvider | `MediaStore.Images.Media` |
 | **Image Loading** | Coil Compose | `2.7.0` |
 | **Coroutines** | Kotlin Coroutines & Flow | `1.9.0` |
@@ -33,12 +32,12 @@ flowchart TD
     B --> C{Permissions Granted?}
     C -- No --> D[Display Permission Request Screen]
     D --> C
-    C -- Yes --> E{24-Hour Auth Token Valid?}
-    E -- No --> F[Display AuthScreen: Password Auth or Google Sign-In]
-    F --> G[Generate 24-Hour Session Token & Store Expiration Timestamp]
+    C -- Yes --> E{Officer Details Set?}
+    E -- No --> F[Show Inspector Authentication Dialog]
+    F --> G[Save Officer Name, Work ID & Site Description to SharedPreferences]
     G --> H[Initialize CameraX Viewfinder & GPS Location Engine]
     E -- Yes --> H
-    H --> I[Display Live Viewfinder + Officer Badge + 24h Session Countdown + Location]
+    H --> I[Display Live Viewfinder + Officer Badge + Location + Clock]
     I --> J[User Taps Capture Button]
     J --> K[CameraX takePicture executes via MediaStore]
     K --> L[Generate File: Pictures/Marga-eyes/IMG_YYYYMMDD_HHMMSS.jpg]
@@ -54,24 +53,6 @@ flowchart TD
     S --> T[Available in Photo Gallery & Device Camera Roll]
     T --> U[Export / Download or Share Geotagged Photo]
 ```
-
----
-
-## 💻 Authentication & Session Features (`AuthManager.kt` & `AuthScreen.kt`)
-
-### 1. Password Credentials Authentication
-- Allows officers to log in using **Email / Username** and **Password** (with visibility toggle).
-- Requires Officer Name, Work ID, and Work Description.
-- Generates a secure session token with a `24-Hour` expiration duration.
-
-### 2. Google Sign-In Integration
-- Provides a **Continue with Google** single sign-on option.
-- Auto-populates Google account credentials and generates a 24-hour field inspection token.
-
-### 3. 24-Hour Automatic Token Expiry
-- Sessions expire automatically after **24 hours** (`86,400,000 ms`).
-- Opening the app within 24 hours bypasses the login screen for instant field inspections.
-- Tapping the Inspector Badge on the viewfinder displays remaining session time (`e.g., 🔒 23h 45m remaining`) with options to re-authenticate or switch accounts.
 
 ---
 
