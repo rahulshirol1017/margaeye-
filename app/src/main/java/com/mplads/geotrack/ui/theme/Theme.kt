@@ -10,14 +10,14 @@ import androidx.compose.ui.platform.LocalView
 import androidx.core.view.WindowCompat
 
 private val DarkColorScheme = darkColorScheme(
-    primary = CivicBlue,
-    secondary = CivicEmerald,
-    background = BgBase,
-    surface = BgSurface,
-    onPrimary = TextPrimary,
-    onSecondary = TextPrimary,
-    onBackground = TextPrimary,
-    onSurface = TextPrimary
+    primary = Emerald500,
+    secondary = Emerald400,
+    background = Black,
+    surface = Zinc950,
+    onPrimary = Black,
+    onSecondary = Black,
+    onBackground = White,
+    onSurface = White
 )
 
 @Composable
@@ -27,8 +27,8 @@ fun MPLADSGeoTrackTheme(content: @Composable () -> Unit) {
     if (!view.isInEditMode) {
         SideEffect {
             val window = (view.context as Activity).window
-            window.statusBarColor = BgBase.toArgb()
-            window.navigationBarColor = BgBase.toArgb()
+            window.statusBarColor = Black.toArgb()
+            window.navigationBarColor = Black.toArgb()
             WindowCompat.getInsetsController(window, view).isAppearanceLightStatusBars = false
         }
     }

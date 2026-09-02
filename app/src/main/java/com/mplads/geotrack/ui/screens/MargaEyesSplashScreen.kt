@@ -5,6 +5,7 @@ import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Shield
@@ -21,7 +22,6 @@ import androidx.compose.ui.graphics.drawscope.rotate
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.mplads.geotrack.ui.components.GovTricolorStripe
 import com.mplads.geotrack.ui.theme.*
 import kotlinx.coroutines.delay
 import kotlin.math.cos
@@ -62,14 +62,9 @@ fun MargaEyesSplashScreen(
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(BgBase),
+            .background(Zinc950),
         contentAlignment = Alignment.Center
     ) {
-        // India Flag Tricolor Accent Stripe
-        GovTricolorStripe(
-            modifier = Modifier.align(Alignment.TopCenter)
-        )
-
         Column(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.SpaceBetween,
@@ -82,27 +77,26 @@ fun MargaEyesSplashScreen(
             // Official Badge Header
             Column(
                 horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.spacedBy(6.dp),
-                modifier = Modifier.padding(top = 12.dp)
+                verticalArrangement = Arrangement.spacedBy(6.dp)
             ) {
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(8.dp),
                     modifier = Modifier
                         .clip(RoundedCornerShape(20.dp))
-                        .background(BgSurface)
-                        .border(1.dp, CivicBlue.copy(alpha = 0.35f), RoundedCornerShape(20.dp))
+                        .background(Zinc900)
+                        .border(1.dp, Emerald500.copy(alpha = 0.3f), RoundedCornerShape(20.dp))
                         .padding(horizontal = 14.dp, vertical = 6.dp)
                 ) {
                     Icon(
                         imageVector = Icons.Default.Shield,
                         contentDescription = null,
-                        tint = CivicBlue,
+                        tint = Emerald400,
                         modifier = Modifier.size(16.dp)
                     )
                     Text(
                         text = "GOVERNMENT SURVEILLANCE",
-                        color = TextPrimary,
+                        color = White,
                         fontSize = 11.sp,
                         fontWeight = FontWeight.Bold,
                         letterSpacing = 1.2.sp
@@ -111,7 +105,7 @@ fun MargaEyesSplashScreen(
 
                 Text(
                     text = "Official GeoTag Camera & Field Inspection Engine",
-                    color = TextSecondary,
+                    color = Zinc400,
                     fontSize = 11.sp,
                     fontWeight = FontWeight.Normal
                 )
@@ -144,7 +138,7 @@ fun MargaEyesSplashScreen(
                     // Outer Eye Border
                     drawPath(
                         path = eyePath,
-                        color = CivicEmerald,
+                        color = Emerald400,
                         style = Stroke(width = 2.5.dp.toPx())
                     )
 
@@ -158,7 +152,7 @@ fun MargaEyesSplashScreen(
                             val p2 = Offset(center.x + r2 * cos(angle).toFloat(), center.y + r2 * sin(angle).toFloat())
 
                             drawLine(
-                                color = CivicEmerald.copy(alpha = 0.5f),
+                                color = Emerald400.copy(alpha = 0.5f),
                                 start = p1,
                                 end = p2,
                                 strokeWidth = 1.5.dp.toPx()
@@ -168,21 +162,21 @@ fun MargaEyesSplashScreen(
 
                     // Pupil Core
                     drawCircle(
-                        color = CivicEmerald,
+                        color = Emerald400,
                         radius = 22.dp.toPx() * pulseScale,
                         center = center
                     )
 
                     // Pupil Reflection
                     drawCircle(
-                        color = TextPrimary,
+                        color = White,
                         radius = 4.dp.toPx(),
                         center = Offset(center.x - 6.dp.toPx(), center.y - 6.dp.toPx())
                     )
                 }
             }
 
-            // Clean Title & Subtitle
+            // Clean Human Title & Subtitle
             Column(
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.spacedBy(6.dp)
@@ -191,14 +185,14 @@ fun MargaEyesSplashScreen(
                     text = "Marga-eyes",
                     fontSize = 30.sp,
                     fontWeight = FontWeight.Bold,
-                    color = TextPrimary,
+                    color = White,
                     letterSpacing = 1.sp
                 )
 
                 Text(
                     text = "Road & Infrastructure Geo-Tracking",
                     fontSize = 13.sp,
-                    color = TextSecondary,
+                    color = Zinc400,
                     fontWeight = FontWeight.Medium
                 )
             }
