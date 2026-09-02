@@ -1,7 +1,7 @@
 package com.mplads.geotrack
 
 import android.Manifest
-import android.content.Context
+import android.content.contentValuesOf
 import android.content.pm.PackageManager
 import android.os.Bundle
 import androidx.activity.ComponentActivity
@@ -28,6 +28,7 @@ import com.mplads.geotrack.data.repository.PhotoRepository
 import com.mplads.geotrack.ui.navigation.Screen
 import com.mplads.geotrack.ui.screens.*
 import com.mplads.geotrack.ui.theme.*
+import com.mplads.geotrack.utils.AuthManager
 import com.mplads.geotrack.utils.LocationHelper
 import com.mplads.geotrack.utils.LocationState
 import kotlinx.coroutines.launch
@@ -102,10 +103,10 @@ fun AppNavigation(
     val navController = rememberNavController()
     val scope = rememberCoroutineScope()
 
-    val prefs = remember { context.getSharedPreferences("marga_eyes_prefs", Context.MODE_PRIVATE) }
-    var savedWorkerName by remember { mutableStateOf(prefs.getString("worker_name", "") ?: "") }
-    var savedWorkId by remember { mutableStateOf(prefs.getString("work_id", "") ?: "") }
-    var savedDescription by remember { mutableStateOf(prefs.getString("work_description", "") ?: "") }
+    var isSessionValid by remember { mutableStateOf(AuthManager.isSessionValid(context)) }
+    var savedWorkerName by remember { mutableStateOf(AuthManager.getOfficerName(context)) }
+    var savedWorkId by remember { mutableStateOf(AuthManager.getWorkId(context)) }
+    var savedDescription by remember { mutableStateOf(AuthManager.getDescription(context)) }
 
     val photos by repository.allPhotos.collectAsState(initial = emptyList())
     val savedCount by repository.savedPhotosCount.collectAsState(initial = 0)
@@ -114,23 +115,16 @@ fun AppNavigation(
 
     var currentCaptureData by remember { mutableStateOf<CapturedPhotoData?>(null) }
 
-    val startRoute = if (savedWorkerName.isEmpty() || savedWorkId.isEmpty()) Screen.Auth.route else Screen.Camera.route
+    val startRoute = if (isSessionValid) Screen.Camera.route else Screen.Auth.route
 
     NavHost(navController = navController, startDestination = startRoute) {
         composable(Screen.Auth.route) {
             AuthScreen(
-                initialWorkerName = savedWorkerName,
-                initialWorkId = savedWorkId,
-                initialDescription = savedDescription,
-                onLoginSuccess = { name, id, desc ->
-                    savedWorkerName = name
-                    savedWorkId = id
-                    savedDescription = desc
-                    prefs.edit()
-                        .putString("worker_name", name)
-                        .putString("work_id", id)
-                        .putString("work_description", desc)
-                        .apply()
+                onLoginSuccess = {
+                    savedWorkerName = AuthManager.getOfficerName(context)
+                    savedWorkId = AuthManager.getWorkId(context)
+                    savedDescription = AuthManager.getDescription(context)
+                    isSessionValid = true
                     navController.navigate(Screen.Camera.route) {
                         popUpTo(Screen.Auth.route) { inclusive = true }
                     }

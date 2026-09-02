@@ -330,12 +330,21 @@ fun CameraScreen(
                             )
                         }
 
-                        Icon(
-                            imageVector = Icons.Default.Edit,
-                            contentDescription = "Edit Details",
-                            tint = Zinc400,
-                            modifier = Modifier.size(14.dp)
-                        )
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Text(
+                                text = AuthManager.getRemainingSessionFormatted(context),
+                                color = Emerald400,
+                                fontSize = 10.sp,
+                                fontWeight = FontWeight.SemiBold
+                            )
+                            Spacer(modifier = Modifier.width(4.dp))
+                            Icon(
+                                imageVector = Icons.Default.Edit,
+                                contentDescription = "Edit Details",
+                                tint = Zinc400,
+                                modifier = Modifier.size(14.dp)
+                            )
+                        }
                     }
 
                     if (description.isNotBlank()) {
