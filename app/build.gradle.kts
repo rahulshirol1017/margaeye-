@@ -76,11 +76,6 @@ dependencies {
     // Location & Google Play Services
     implementation("com.google.android.gms:play-services-location:21.1.0")
 
-    // Google CredentialManager Authentication
-    implementation("androidx.credentials:credentials:1.3.0")
-    implementation("androidx.credentials:credentials-play-services-auth:1.3.0")
-    implementation("com.google.android.libraries.identity.googleid:googleid:1.1.1")
-
     // EXIF Interface
     implementation("androidx.exifinterface:exifinterface:1.3.7")
 
@@ -90,16 +85,8 @@ dependencies {
     implementation("androidx.room:room-ktx:$roomVersion")
     ksp("androidx.room:room-compiler:$roomVersion")
 
-    // Retrofit & OkHttp
-    implementation("com.squareup.retrofit2:retrofit:2.9.0")
-    implementation("com.squareup.retrofit2:converter-gson:2.9.0")
-    implementation("com.squareup.okhttp3:logging-interceptor:4.12.0")
-
     // Image Loading (Coil)
     implementation("io.coil-kt:coil-compose:2.5.0")
-
-    // Accompanist Permissions (Compose Permissions helper)
-    implementation("com.google.accompanist:accompanist-permissions:0.34.0")
 
     // Testing
     testImplementation("junit:junit:4.13.2")
