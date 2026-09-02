@@ -1,7 +1,7 @@
 # Marga-eyes — Geotagged Camera Application Technical Documentation
 
 ## 📌 Executive Summary
-**Marga-eyes** is a modern, human-crafted native Android application built in Kotlin with Jetpack Compose. It enables real-time camera capture with automatic high-precision GPS geotagging, Inspector Authentication details (Officer Name, Work ID, and Work Description), reverse-geocoded place names, embedded EXIF metadata, custom visible watermark plates burned directly onto saved photos, direct photo gallery export, and an official animated splash screen.
+**Marga-eyes** is a modern, human-crafted native Android application built in Kotlin with Jetpack Compose. It enables real-time camera capture with automatic high-precision GPS geotagging, Inspector details (Officer Name, Work ID, and Work Description), reverse-geocoded place names, embedded EXIF metadata, custom visible watermark plates burned directly onto saved photos, direct photo gallery export, and an official animated splash screen.
 
 ---
 
@@ -33,7 +33,7 @@ flowchart TD
     C -- No --> D[Display Permission Request Screen]
     D --> C
     C -- Yes --> E{Officer Details Set?}
-    E -- No --> F[Show Inspector Authentication Dialog]
+    E -- No --> F[Show Inspector Dialog]
     F --> G[Save Officer Name, Work ID & Site Description to SharedPreferences]
     G --> H[Initialize CameraX Viewfinder & GPS Location Engine]
     E -- Yes --> H
