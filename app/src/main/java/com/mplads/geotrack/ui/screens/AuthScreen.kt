@@ -12,12 +12,14 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
+import androidx.compose.material.icons.automirrored.filled.Notes
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
@@ -25,7 +27,6 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.compose.ui.graphics.Color
 import com.mplads.geotrack.ui.theme.*
 import com.mplads.geotrack.utils.AuthManager
 
@@ -36,9 +37,16 @@ fun AuthScreen(
 ) {
     val context = LocalContext.current
 
-    var email by remember { mutableStateOf(AuthManager.getUserEmail(context)) }
+    var showPasswordForm by remember { mutableStateOf(false) }
+
+    // Google Profile Defaults
+    var googleEmail by remember { mutableStateOf(AuthManager.getUserEmail(context).ifBlank { "rahul.shirol@gov.in" }) }
+    var googleName by remember { mutableStateOf(AuthManager.getOfficerName(context).ifBlank { "Rahul Shirol" }) }
+
+    // Manual Form Defaults
     var password by remember { mutableStateOf("") }
     var isPasswordVisible by remember { mutableStateOf(false) }
+    var workId by remember { mutableStateOf(AuthManager.getWorkId(context).ifBlank { "WRK-2026-8942" }) }
     var errorMessage by remember { mutableStateOf("") }
 
     Box(
@@ -57,68 +65,144 @@ fun AuthScreen(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.SpaceBetween
         ) {
-            // Header Logo & App Title
+            // 1. Google App Style Header & Logo
             Column(
                 horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.spacedBy(10.dp),
-                modifier = Modifier.padding(top = 28.dp)
+                verticalArrangement = Arrangement.spacedBy(12.dp),
+                modifier = Modifier.padding(top = 32.dp)
             ) {
+                // Official Badge Header
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    modifier = Modifier
+                        .clip(RoundedCornerShape(20.dp))
+                        .background(Zinc900)
+                        .border(1.dp, Emerald500.copy(alpha = 0.3f), RoundedCornerShape(20.dp))
+                        .padding(horizontal = 14.dp, vertical = 6.dp)
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Shield,
+                        contentDescription = null,
+                        tint = Emerald400,
+                        modifier = Modifier.size(16.dp)
+                    )
+                    Text(
+                        text = "GOVERNMENT SURVEILLANCE",
+                        color = White,
+                        fontSize = 11.sp,
+                        fontWeight = FontWeight.Bold,
+                        letterSpacing = 1.2.sp
+                    )
+                }
+
+                Spacer(modifier = Modifier.height(8.dp))
+
+                // App Symbol Logo
                 Box(
                     modifier = Modifier
-                        .size(64.dp)
+                        .size(72.dp)
                         .clip(CircleShape)
                         .background(Emerald500.copy(alpha = 0.15f))
                         .border(1.5.dp, Emerald400.copy(alpha = 0.4f), CircleShape),
                     contentAlignment = Alignment.Center
                 ) {
                     Icon(
-                        imageVector = Icons.Default.Shield,
+                        imageVector = Icons.Default.Camera,
                         contentDescription = null,
                         tint = Emerald400,
-                        modifier = Modifier.size(32.dp)
+                        modifier = Modifier.size(36.dp)
                     )
                 }
 
                 Text(
-                    text = "Sign in to Marga-eyes",
-                    fontSize = 24.sp,
+                    text = "Welcome to Marga-eyes",
+                    fontSize = 26.sp,
                     fontWeight = FontWeight.Bold,
                     color = White
                 )
 
                 Text(
-                    text = "Infrastructure GeoTag & Field Surveillance",
+                    text = "Geo-Spatial Infrastructure & Road Tracking",
                     fontSize = 13.sp,
                     color = Zinc400
                 )
             }
 
-            // Main Login Card
-            Card(
-                colors = CardDefaults.cardColors(containerColor = Zinc900),
-                border = androidx.compose.foundation.BorderStroke(1.dp, Zinc800),
-                shape = RoundedCornerShape(20.dp),
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(vertical = 24.dp)
-            ) {
+            // 2. Google-Style One-Tap Sign-In Card
+            if (!showPasswordForm) {
                 Column(
-                    modifier = Modifier.padding(20.dp),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 24.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally,
                     verticalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
-                    // 1. Google Sign-In Button (Standard Prominent)
+                    // Google Account Profile Card
+                    Card(
+                        colors = CardDefaults.cardColors(containerColor = Zinc900),
+                        border = androidx.compose.foundation.BorderStroke(1.dp, Zinc800),
+                        shape = RoundedCornerShape(20.dp),
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(16.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(14.dp)
+                        ) {
+                            // Avatar Circle
+                            Box(
+                                modifier = Modifier
+                                    .size(46.dp)
+                                    .clip(CircleShape)
+                                    .background(Color(0xFF4285F4)), // Google Blue
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Text(
+                                    text = googleName.take(1).uppercase(),
+                                    color = White,
+                                    fontSize = 20.sp,
+                                    fontWeight = FontWeight.Bold
+                                )
+                            }
+
+                            Column(modifier = Modifier.weight(1f)) {
+                                Text(
+                                    text = googleName,
+                                    color = White,
+                                    fontSize = 15.sp,
+                                    fontWeight = FontWeight.Bold
+                                )
+                                Text(
+                                    text = googleEmail,
+                                    color = Zinc400,
+                                    fontSize = 12.sp
+                                )
+                            }
+
+                            Icon(
+                                imageVector = Icons.Default.CheckCircle,
+                                contentDescription = null,
+                                tint = Emerald400,
+                                modifier = Modifier.size(20.dp)
+                            )
+                        }
+                    }
+
+                    // Primary Button: "Continue as [Google User]"
                     Button(
                         onClick = {
-                            val googleEmail = if (email.isNotBlank()) email else "officer@gov.in"
                             val success = AuthManager.loginWithGoogle(
                                 context = context,
-                                googleEmail = googleEmail,
-                                googleDisplayName = "Field Officer",
-                                workId = "WRK-2026",
+                                googleEmail = googleEmail.trim(),
+                                googleDisplayName = googleName.trim(),
+                                workId = workId,
                                 description = ""
                             )
                             if (success) {
-                                Toast.makeText(context, "Signed in with Google", Toast.LENGTH_SHORT).show()
+                                Toast.makeText(context, "Signed in as $googleName", Toast.LENGTH_SHORT).show()
                                 onLoginSuccess()
                             }
                         },
@@ -126,10 +210,10 @@ fun AuthScreen(
                             containerColor = White,
                             contentColor = Black
                         ),
-                        shape = RoundedCornerShape(12.dp),
+                        shape = RoundedCornerShape(14.dp),
                         modifier = Modifier
                             .fillMaxWidth()
-                            .height(50.dp)
+                            .height(52.dp)
                     ) {
                         Row(
                             verticalAlignment = Alignment.CenterVertically,
@@ -138,109 +222,70 @@ fun AuthScreen(
                             Icon(
                                 imageVector = Icons.Default.AccountCircle,
                                 contentDescription = null,
-                                tint = Color(0xFF4285F4), // Google Blue
+                                tint = Color(0xFF4285F4),
                                 modifier = Modifier.size(22.dp)
                             )
                             Spacer(modifier = Modifier.width(10.dp))
                             Text(
-                                text = "Sign in with Google",
+                                text = "Continue as $googleName",
                                 fontSize = 15.sp,
                                 fontWeight = FontWeight.Bold
                             )
                         }
                     }
 
-                    // Divider with OR
-                    Row(
+                    // Secondary Option: Use Password Credentials
+                    Text(
+                        text = "Use password or another account",
+                        color = Emerald400,
+                        fontSize = 13.sp,
+                        fontWeight = FontWeight.Medium,
                         modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(vertical = 4.dp),
-                        verticalAlignment = Alignment.CenterVertically
+                            .clip(RoundedCornerShape(8.dp))
+                            .clickable { showPasswordForm = true }
+                            .padding(horizontal = 12.dp, vertical = 6.dp)
+                    )
+                }
+            } else {
+                // Password Login Form
+                Card(
+                    colors = CardDefaults.cardColors(containerColor = Zinc900),
+                    border = androidx.compose.foundation.BorderStroke(1.dp, Zinc800),
+                    shape = RoundedCornerShape(20.dp),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 16.dp)
+                ) {
+                    Column(
+                        modifier = Modifier.padding(18.dp),
+                        verticalArrangement = Arrangement.spacedBy(14.dp)
                     ) {
-                        HorizontalDivider(
-                            modifier = Modifier.weight(1f),
-                            color = Zinc800
-                        )
-                        Text(
-                            text = "OR",
-                            color = Zinc500,
-                            fontSize = 12.sp,
-                            fontWeight = FontWeight.SemiBold,
-                            modifier = Modifier.padding(horizontal = 12.dp)
-                        )
-                        HorizontalDivider(
-                            modifier = Modifier.weight(1f),
-                            color = Zinc800
-                        )
-                    }
-
-                    // 2. Email Field
-                    Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                        Text(
-                            text = "Email address",
-                            color = Zinc300,
-                            fontSize = 13.sp,
-                            fontWeight = FontWeight.Medium
-                        )
-                        OutlinedTextField(
-                            value = email,
-                            onValueChange = {
-                                email = it
-                                errorMessage = ""
-                            },
-                            placeholder = { Text("name@organization.gov.in", color = Zinc500) },
-                            leadingIcon = {
-                                Icon(Icons.Default.Email, contentDescription = null, tint = Emerald400)
-                            },
-                            singleLine = true,
-                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
-                            colors = OutlinedTextFieldDefaults.colors(
-                                focusedBorderColor = Emerald400,
-                                unfocusedBorderColor = Zinc800,
-                                focusedLabelColor = Emerald400,
-                                unfocusedLabelColor = Zinc400
-                            ),
-                            modifier = Modifier.fillMaxWidth()
-                        )
-                    }
-
-                    // 3. Password Field
-                    Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
                         Row(
                             modifier = Modifier.fillMaxWidth(),
                             horizontalArrangement = Arrangement.SpaceBetween,
                             verticalAlignment = Alignment.CenterVertically
                         ) {
                             Text(
-                                text = "Password",
-                                color = Zinc300,
-                                fontSize = 13.sp,
-                                fontWeight = FontWeight.Medium
+                                text = "Password Sign-In",
+                                color = White,
+                                fontSize = 16.sp,
+                                fontWeight = FontWeight.Bold
+                            )
+                            Text(
+                                text = "Google Sign-In",
+                                color = Emerald400,
+                                fontSize = 12.sp,
+                                fontWeight = FontWeight.SemiBold,
+                                modifier = Modifier.clickable { showPasswordForm = false }
                             )
                         }
 
                         OutlinedTextField(
-                            value = password,
-                            onValueChange = {
-                                password = it
-                                errorMessage = ""
-                            },
-                            placeholder = { Text("Enter your password", color = Zinc500) },
-                            leadingIcon = {
-                                Icon(Icons.Default.Lock, contentDescription = null, tint = Emerald400)
-                            },
-                            trailingIcon = {
-                                IconButton(onClick = { isPasswordVisible = !isPasswordVisible }) {
-                                    Icon(
-                                        imageVector = if (isPasswordVisible) Icons.Default.Visibility else Icons.Default.VisibilityOff,
-                                        contentDescription = "Toggle password visibility",
-                                        tint = Zinc400
-                                    )
-                                }
-                            },
-                            visualTransformation = if (isPasswordVisible) VisualTransformation.None else PasswordVisualTransformation(),
+                            value = googleEmail,
+                            onValueChange = { googleEmail = it; errorMessage = "" },
+                            label = { Text("Email address") },
+                            leadingIcon = { Icon(Icons.Default.Email, contentDescription = null, tint = Emerald400) },
                             singleLine = true,
-                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
                             colors = OutlinedTextFieldDefaults.colors(
                                 focusedBorderColor = Emerald400,
                                 unfocusedBorderColor = Zinc800,
@@ -249,77 +294,100 @@ fun AuthScreen(
                             ),
                             modifier = Modifier.fillMaxWidth()
                         )
-                    }
 
-                    if (errorMessage.isNotEmpty()) {
-                        Text(
-                            text = errorMessage,
-                            color = Rose500,
-                            fontSize = 12.sp,
-                            fontWeight = FontWeight.Medium
-                        )
-                    }
-
-                    Spacer(modifier = Modifier.height(4.dp))
-
-                    // Sign In Button
-                    Button(
-                        onClick = {
-                            if (email.isBlank() || password.isBlank()) {
-                                errorMessage = "Please enter both Email address and Password."
-                            } else {
-                                val officerName = email.substringBefore("@").replace(".", " ").capitalize()
-                                val success = AuthManager.loginWithCredentials(
-                                    context = context,
-                                    email = email.trim(),
-                                    password = password.trim(),
-                                    officerName = if (officerName.isNotBlank()) officerName else "Officer",
-                                    workId = "WRK-2026",
-                                    description = ""
-                                )
-                                if (success) {
-                                    Toast.makeText(context, "Sign-in successful", Toast.LENGTH_SHORT).show()
-                                    onLoginSuccess()
-                                } else {
-                                    errorMessage = "Invalid login credentials."
+                        OutlinedTextField(
+                            value = password,
+                            onValueChange = { password = it; errorMessage = "" },
+                            label = { Text("Password") },
+                            leadingIcon = { Icon(Icons.Default.Lock, contentDescription = null, tint = Emerald400) },
+                            trailingIcon = {
+                                IconButton(onClick = { isPasswordVisible = !isPasswordVisible }) {
+                                    Icon(
+                                        imageVector = if (isPasswordVisible) Icons.Default.Visibility else Icons.Default.VisibilityOff,
+                                        contentDescription = null,
+                                        tint = Zinc400
+                                    )
                                 }
-                            }
-                        },
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = Emerald500,
-                            contentColor = Black
-                        ),
-                        shape = RoundedCornerShape(12.dp),
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(50.dp)
-                    ) {
-                        Text(
-                            text = "Sign In",
-                            fontSize = 15.sp,
-                            fontWeight = FontWeight.Bold
+                            },
+                            visualTransformation = if (isPasswordVisible) VisualTransformation.None else PasswordVisualTransformation(),
+                            singleLine = true,
+                            colors = OutlinedTextFieldDefaults.colors(
+                                focusedBorderColor = Emerald400,
+                                unfocusedBorderColor = Zinc800,
+                                focusedLabelColor = Emerald400,
+                                unfocusedLabelColor = Zinc400
+                            ),
+                            modifier = Modifier.fillMaxWidth()
                         )
-                        Spacer(modifier = Modifier.width(6.dp))
-                        Icon(
-                            imageVector = Icons.AutoMirrored.Filled.ArrowForward,
-                            contentDescription = null,
-                            modifier = Modifier.size(18.dp)
-                        )
+
+                        if (errorMessage.isNotEmpty()) {
+                            Text(text = errorMessage, color = Rose500, fontSize = 12.sp)
+                        }
+
+                        Button(
+                            onClick = {
+                                if (googleEmail.isBlank() || password.isBlank()) {
+                                    errorMessage = "Please enter both Email and Password."
+                                } else {
+                                    val success = AuthManager.loginWithCredentials(
+                                        context = context,
+                                        email = googleEmail.trim(),
+                                        password = password.trim(),
+                                        officerName = googleEmail.substringBefore("@").replace(".", " "),
+                                        workId = workId,
+                                        description = ""
+                                    )
+                                    if (success) {
+                                        Toast.makeText(context, "Authenticated successfully", Toast.LENGTH_SHORT).show()
+                                        onLoginSuccess()
+                                    }
+                                }
+                            },
+                            colors = ButtonDefaults.buttonColors(containerColor = Emerald500, contentColor = Black),
+                            shape = RoundedCornerShape(12.dp),
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(48.dp)
+                        ) {
+                            Text("Sign In", fontSize = 15.sp, fontWeight = FontWeight.Bold)
+                            Spacer(modifier = Modifier.width(6.dp))
+                            Icon(Icons.AutoMirrored.Filled.ArrowForward, contentDescription = null, modifier = Modifier.size(18.dp))
+                        }
                     }
                 }
             }
 
-            // Footer
-            Text(
-                text = "Protected by Marga-eyes Security & 24h Session Token",
-                color = Zinc500,
-                fontSize = 11.sp,
-                modifier = Modifier.padding(bottom = 12.dp)
-            )
+            // 3. Official Footer Notice
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.spacedBy(4.dp),
+                modifier = Modifier.padding(bottom = 16.dp)
+            ) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(6.dp)
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Lock,
+                        contentDescription = null,
+                        tint = Zinc500,
+                        modifier = Modifier.size(13.dp)
+                    )
+                    Text(
+                        text = "Secured 24-Hour Token Session",
+                        color = Zinc500,
+                        fontSize = 11.sp
+                    )
+                }
+
+                Text(
+                    text = "GOVERNMENT OF INDIA • MARGA-EYES V3.0",
+                    color = Zinc500,
+                    fontSize = 9.sp,
+                    fontWeight = FontWeight.Medium,
+                    letterSpacing = 1.sp
+                )
+            }
         }
     }
-}
-
-private fun String.capitalize(): String {
-    return this.replaceFirstChar { if (it.isLowerCase()) it.titlecase() else it.toString() }
 }
