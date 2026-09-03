@@ -7,8 +7,8 @@ import retrofit2.converter.gson.GsonConverterFactory
 import java.util.concurrent.TimeUnit
 
 object NetworkClient {
-    // USB Cable connection using ADB reverse port forwarding (tcp:5001 -> tcp:5001)
-    var baseUrl: String = "http://127.0.0.1:5001/"
+    // Live Hosted Backend Server on Render
+    var baseUrl: String = "https://margaeye.onrender.com/"
         set(value) {
             field = if (value.endsWith("/")) value else "$value/"
             apiServiceInstance = null
