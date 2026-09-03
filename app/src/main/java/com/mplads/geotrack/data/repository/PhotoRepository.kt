@@ -1,8 +1,9 @@
 package com.mplads.geotrack.data.repository
 
+import android.content.Context
+import android.net.Uri
 import android.util.Log
 import com.mplads.geotrack.data.local.GeoPhotoDao
-
 import com.mplads.geotrack.data.model.GeoPhoto
 import com.mplads.geotrack.data.remote.NetworkClient
 import kotlinx.coroutines.Dispatchers
@@ -10,13 +11,13 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.withContext
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.MultipartBody
-import okhttp3.RequestBody.Companion.asRequestBody
+import okhttp3.RequestBody
 import okhttp3.RequestBody.Companion.toRequestBody
 import java.io.File
-import java.net.URI
 
 class PhotoRepository(
-    private val photoDao: GeoPhotoDao
+    private val photoDao: GeoPhotoDao,
+    private val context: Context? = null
 ) {
     val allPhotos: Flow<List<GeoPhoto>> = photoDao.getAllPhotos()
     val savedPhotosCount: Flow<Int> = photoDao.getPhotoCount()
@@ -43,21 +44,37 @@ class PhotoRepository(
         return withContext(Dispatchers.IO) {
             try {
                 val targetPath = photo.watermarkedImageUrl ?: photo.imageUrl
-                val file = if (targetPath.startsWith("file://")) {
-                    File(URI.create(targetPath))
-                } else {
-                    File(targetPath)
+                var imageBytes: ByteArray? = null
+                var fileName = "${photo.id}.jpg"
+
+                if (targetPath.startsWith("content://") && context != null) {
+                    try {
+                        val uri = Uri.parse(targetPath)
+                        imageBytes = context.contentResolver.openInputStream(uri)?.use { it.readBytes() }
+                    } catch (e: Exception) {
+                        Log.e("PhotoRepository", "Failed to read content URI: $targetPath", e)
+                    }
                 }
 
-                if (!file.exists()) {
-                    Log.e("PhotoRepository", "File does not exist for upload: ${file.absolutePath}")
-                    return@withContext false
+                if (imageBytes == null) {
+                    val filePath = when {
+                        targetPath.startsWith("file://") -> targetPath.substring(7)
+                        else -> targetPath
+                    }
+                    val file = File(filePath)
+                    if (file.exists()) {
+                        imageBytes = file.readBytes()
+                        fileName = file.name
+                    } else {
+                        Log.e("PhotoRepository", "File does not exist for upload: $filePath")
+                        return@withContext false
+                    }
                 }
 
-                val requestFile = file.asRequestBody("image/jpeg".toMediaTypeOrNull())
-                val body = MultipartBody.Part.createFormData("photo", file.name, requestFile)
+                val requestFile = imageBytes.toRequestBody("image/jpeg".toMediaTypeOrNull())
+                val body = MultipartBody.Part.createFormData("photo", fileName, requestFile)
 
-                fun createPart(value: String?): okhttp3.RequestBody {
+                fun createPart(value: String?): RequestBody {
                     return (value ?: "").toRequestBody("text/plain".toMediaTypeOrNull())
                 }
 
@@ -92,4 +109,5 @@ class PhotoRepository(
         }
     }
 }
+
 

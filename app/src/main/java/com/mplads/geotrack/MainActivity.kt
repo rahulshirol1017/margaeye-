@@ -52,7 +52,7 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
 
         val database = AppDatabase.getDatabase(this)
-        repository = PhotoRepository(database.geoPhotoDao())
+        repository = PhotoRepository(database.geoPhotoDao(), applicationContext)
         locationHelper = LocationHelper(this)
 
         checkAndRequestPermissions()
