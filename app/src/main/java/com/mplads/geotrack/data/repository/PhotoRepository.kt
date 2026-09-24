@@ -95,7 +95,19 @@ class PhotoRepository(
                 )
 
                 val response = NetworkClient.apiService.uploadPhoto(body, fields)
-                if (response.isSuccessful && response.body()?.success == true) {
+                val success = response.isSuccessful && response.body()?.success == true
+
+                if (context != null) {
+                    withContext(Dispatchers.Main) {
+                        if (success) {
+                            android.widget.Toast.makeText(context, "Photo uploaded to MongoDB Cloud!", android.widget.Toast.LENGTH_SHORT).show()
+                        } else {
+                            android.widget.Toast.makeText(context, "Saved locally (Upload pending)", android.widget.Toast.LENGTH_SHORT).show()
+                        }
+                    }
+                }
+
+                if (success) {
                     Log.i("PhotoRepository", "Successfully uploaded photo ${photo.id} to MongoDB")
                     true
                 } else {
@@ -104,6 +116,11 @@ class PhotoRepository(
                 }
             } catch (e: Exception) {
                 Log.e("PhotoRepository", "Error uploading photo to MongoDB server: ${e.message}", e)
+                if (context != null) {
+                    withContext(Dispatchers.Main) {
+                        android.widget.Toast.makeText(context, "Saved locally (Offline/Network retry)", android.widget.Toast.LENGTH_SHORT).show()
+                    }
+                }
                 false
             }
         }
