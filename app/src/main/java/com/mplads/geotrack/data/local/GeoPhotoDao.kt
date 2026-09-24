@@ -9,6 +9,9 @@ interface GeoPhotoDao {
     @Query("SELECT * FROM geo_photos ORDER BY capturedAt DESC")
     fun getAllPhotos(): Flow<List<GeoPhoto>>
 
+    @Query("SELECT * FROM geo_photos ORDER BY capturedAt DESC")
+    suspend fun getAllPhotosList(): List<GeoPhoto>
+
     @Query("SELECT * FROM geo_photos WHERE id = :id")
     suspend fun getPhotoById(id: String): GeoPhoto?
 

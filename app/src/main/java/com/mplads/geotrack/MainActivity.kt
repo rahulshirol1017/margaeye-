@@ -30,6 +30,8 @@ import com.mplads.geotrack.ui.screens.*
 import com.mplads.geotrack.ui.theme.*
 import com.mplads.geotrack.utils.LocationHelper
 import com.mplads.geotrack.utils.LocationState
+import androidx.lifecycle.lifecycleScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
 class MainActivity : ComponentActivity() {
@@ -56,6 +58,14 @@ class MainActivity : ComponentActivity() {
         locationHelper = LocationHelper(this)
 
         checkAndRequestPermissions()
+
+        kotlinx.coroutines.CoroutineScope(Dispatchers.IO).launch {
+            try {
+                repository.syncAllLocalPhotos()
+            } catch (e: Exception) {
+                android.util.Log.w("MainActivity", "Auto-sync failed on launch: ${e.message}")
+            }
+        }
 
         setContent {
             MPLADSGeoTrackTheme {

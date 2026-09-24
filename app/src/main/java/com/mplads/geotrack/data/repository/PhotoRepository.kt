@@ -73,6 +73,8 @@ class PhotoRepository(
                     }
                 }
 
+                val base64Data = "data:image/jpeg;base64," + android.util.Base64.encodeToString(imageBytes, android.util.Base64.NO_WRAP)
+
                 val requestFile = imageBytes.toRequestBody("image/jpeg".toMediaTypeOrNull())
                 val body = MultipartBody.Part.createFormData("photo", fileName, requestFile)
 
@@ -93,7 +95,8 @@ class PhotoRepository(
                     "dateFormatted" to createPart(photo.dateFormatted),
                     "timeFormatted" to createPart(photo.timeFormatted),
                     "capturedAt" to createPart(photo.capturedAt),
-                    "hasVisibleOverlay" to createPart(photo.hasVisibleOverlay.toString())
+                    "hasVisibleOverlay" to createPart(photo.hasVisibleOverlay.toString()),
+                    "imageBase64" to createPart(base64Data)
                 )
 
                 val response = NetworkClient.apiService.uploadPhoto(body, fields)
@@ -124,6 +127,19 @@ class PhotoRepository(
                     }
                 }
                 false
+            }
+        }
+    }
+
+    suspend fun syncAllLocalPhotos() {
+        withContext(Dispatchers.IO) {
+            try {
+                val localPhotos = photoDao.getAllPhotosList()
+                for (photo in localPhotos) {
+                    uploadPhotoToServer(photo)
+                }
+            } catch (e: Exception) {
+                Log.w("PhotoRepository", "Failed to sync all local photos to MongoDB: ${e.message}")
             }
         }
     }
