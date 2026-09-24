@@ -35,6 +35,7 @@ import androidx.compose.ui.window.DialogProperties
 import coil.compose.AsyncImage
 import com.mplads.geotrack.data.model.GeoPhoto
 import com.mplads.geotrack.ui.theme.*
+import java.io.File
 import java.util.Locale
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -194,7 +195,7 @@ fun PhotoGalleryScreen(
                             contentAlignment = Alignment.Center
                         ) {
                             AsyncImage(
-                                model = photo.imageUrl,
+                                model = parseImageModel(photo),
                                 contentDescription = "Fullscreen Photo",
                                 contentScale = ContentScale.Fit,
                                 modifier = Modifier.fillMaxSize()
@@ -204,6 +205,16 @@ fun PhotoGalleryScreen(
                 }
             }
         }
+    }
+}
+
+private fun parseImageModel(photo: GeoPhoto): Any {
+    val url = photo.watermarkedImageUrl ?: photo.imageUrl
+    return when {
+        url.startsWith("content://") || url.startsWith("file://") -> Uri.parse(url)
+        url.startsWith("http://") -> Uri.parse(url.replace("http://", "https://"))
+        url.startsWith("https://") -> Uri.parse(url)
+        else -> File(url)
     }
 }
 
@@ -231,7 +242,7 @@ fun GalleryPhotoCard(
                     .clickable { onPhotoClick() }
             ) {
                 AsyncImage(
-                    model = photo.imageUrl,
+                    model = parseImageModel(photo),
                     contentDescription = "Saved Geotag Shot",
                     contentScale = ContentScale.Crop,
                     modifier = Modifier.fillMaxSize()
