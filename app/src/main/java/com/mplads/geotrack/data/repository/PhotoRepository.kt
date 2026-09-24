@@ -6,8 +6,10 @@ import android.util.Log
 import com.mplads.geotrack.data.local.GeoPhotoDao
 import com.mplads.geotrack.data.model.GeoPhoto
 import com.mplads.geotrack.data.remote.NetworkClient
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.MultipartBody
@@ -23,11 +25,11 @@ class PhotoRepository(
     val savedPhotosCount: Flow<Int> = photoDao.getPhotoCount()
 
     suspend fun savePhoto(photo: GeoPhoto) {
-        // Save locally to Room database first (offline capability)
+        // 1. Save locally to Room database instantly
         photoDao.insertPhoto(photo)
 
-        // Attempt background upload to MongoDB server
-        withContext(Dispatchers.IO) {
+        // 2. Launch background upload asynchronously without blocking the UI
+        kotlinx.coroutines.CoroutineScope(Dispatchers.IO).launch {
             try {
                 uploadPhotoToServer(photo)
             } catch (e: Exception) {

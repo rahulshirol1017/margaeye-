@@ -43,9 +43,12 @@ class LocationHelper(private val context: Context) {
 
     @SuppressLint("MissingPermission")
     fun getLocationFlow(): Flow<LocationState> = callbackFlow {
-        // 1. Immediately check last known location for fast startup lock
+        var bestAccuracy = Float.MAX_VALUE
+
+        // 1. Check last known location ONLY if accuracy is good (< 30m)
         fusedLocationClient.lastLocation.addOnSuccessListener { loc ->
-            if (loc != null) {
+            if (loc != null && loc.hasAccuracy() && loc.accuracy <= 30f) {
+                bestAccuracy = loc.accuracy
                 trySend(
                     LocationState.Locked(
                         LocationData(
@@ -57,51 +60,35 @@ class LocationHelper(private val context: Context) {
                         )
                     )
                 )
-            } else {
-                // Check Android LocationManager last known location
-                val locationManager = context.getSystemService(Context.LOCATION_SERVICE) as? LocationManager
-                val gpsLoc = locationManager?.getLastKnownLocation(LocationManager.GPS_PROVIDER)
-                val netLoc = locationManager?.getLastKnownLocation(LocationManager.NETWORK_PROVIDER)
-                val bestLoc = gpsLoc ?: netLoc
-
-                if (bestLoc != null) {
-                    trySend(
-                        LocationState.Locked(
-                            LocationData(
-                                latitude = bestLoc.latitude,
-                                longitude = bestLoc.longitude,
-                                accuracy = bestLoc.accuracy,
-                                altitude = bestLoc.altitude,
-                                placeName = "Locating..."
-                            )
-                        )
-                    )
-                }
             }
         }
 
-        // 2. Request high accuracy continuous updates
+        // 2. Request high accuracy continuous GPS updates
         val locationRequest = LocationRequest.Builder(
-            Priority.PRIORITY_HIGH_ACCURACY, 2000L
+            Priority.PRIORITY_HIGH_ACCURACY, 1000L
         ).apply {
-            setMinUpdateIntervalMillis(1000L)
-            setWaitForAccurateLocation(false)
+            setMinUpdateIntervalMillis(500L)
+            setWaitForAccurateLocation(true)
         }.build()
 
         val locationCallback = object : LocationCallback() {
             override fun onLocationResult(result: LocationResult) {
                 for (location in result.locations) {
-                    trySend(
-                        LocationState.Locked(
-                            LocationData(
-                                latitude = location.latitude,
-                                longitude = location.longitude,
-                                accuracy = location.accuracy,
-                                altitude = location.altitude,
-                                placeName = "Locating..."
+                    // Update whenever accuracy improves or is high precision (<= 30m)
+                    if (location.hasAccuracy() && (location.accuracy <= bestAccuracy || location.accuracy <= 30f)) {
+                        bestAccuracy = location.accuracy
+                        trySend(
+                            LocationState.Locked(
+                                LocationData(
+                                    latitude = location.latitude,
+                                    longitude = location.longitude,
+                                    accuracy = location.accuracy,
+                                    altitude = location.altitude,
+                                    placeName = "Locating..."
+                                )
                             )
                         )
-                    )
+                    }
                 }
             }
         }
