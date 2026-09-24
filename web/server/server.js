@@ -47,12 +47,16 @@ mongoose.connect(MONGODB_URI)
     console.warn(`[MongoDB Warning] Could not connect to MongoDB: ${err.message}. (Server will remain operational)`);
   });
 
+// Enable trust proxy for HTTPS URL resolution behind reverse proxies (e.g. Render, Cloudflare)
+app.set('trust proxy', true);
+
 // GeoPhoto Mongoose Schema
 const geoPhotoSchema = new mongoose.Schema({
   photoId: { type: String, required: true, unique: true },
   imageUrl: { type: String, required: true },
   rawImageUrl: { type: String },
   watermarkedImageUrl: { type: String },
+  imageBase64: { type: String },
   hasVisibleOverlay: { type: Boolean, default: true },
   latitude: { type: Number, required: true },
   longitude: { type: Number, required: true },
@@ -70,10 +74,9 @@ const geoPhotoSchema = new mongoose.Schema({
 // Bind explicitly to 'geotagged_photos' collection
 const GeoPhotoModel = mongoose.model('GeoPhoto', geoPhotoSchema, 'geotagged_photos');
 
-
 // Middleware
 app.use(cors());
-app.use(express.json());
+app.use(express.json({ limit: '10mb' }));
 app.use('/uploads', express.static(uploadsDir));
 
 // In-Memory Database (Fallback)
@@ -256,19 +259,32 @@ app.post('/api/photos/upload', upload.single('photo'), async (req, res) => {
     } = req.body;
 
     const file = req.file;
-    if (!file && !req.body.imageUrl) {
-      return res.status(400).json({ success: false, message: 'Photo image file is required' });
+    if (!file && !req.body.imageUrl && !req.body.imageBase64) {
+      return res.status(400).json({ success: false, message: 'Photo image file or base64 is required' });
+    }
+
+    let base64DataUrl = req.body.imageBase64 || null;
+    if (file && !base64DataUrl) {
+      try {
+        const buffer = fs.readFileSync(file.path);
+        base64DataUrl = `data:${file.mimetype || 'image/jpeg'};base64,${buffer.toString('base64')}`;
+      } catch (e) {
+        console.warn('[Upload Warning] Could not read file to base64:', e.message);
+      }
     }
 
     const host = req.get('host') || `localhost:${PORT}`;
-    const protocol = req.protocol || 'http';
-    const relativeUrl = file ? `/uploads/${file.filename}` : req.body.imageUrl;
-    const fullImageUrl = `${protocol}://${host}${relativeUrl}`;
+    const rawProtocol = req.headers['x-forwarded-proto'] || req.protocol || 'http';
+    const protocol = (host.includes('render.com') || host.includes('herokuapp.com')) ? 'https' : rawProtocol;
+    const relativeUrl = file ? `/uploads/${file.filename}` : (req.body.imageUrl || '');
+    const fullImageUrl = relativeUrl ? `${protocol}://${host}${relativeUrl}` : (base64DataUrl || '');
 
     const newPhotoData = {
       photoId: photoId || 'photo_' + Date.now(),
       imageUrl: fullImageUrl,
       rawImageUrl: fullImageUrl,
+      watermarkedImageUrl: fullImageUrl,
+      imageBase64: base64DataUrl,
       hasVisibleOverlay: req.body.hasVisibleOverlay === 'true' || req.body.hasVisibleOverlay === true,
       latitude: parseFloat(latitude) || 0.0,
       longitude: parseFloat(longitude) || 0.0,
